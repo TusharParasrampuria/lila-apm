@@ -6,6 +6,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE_ROOT = ROOT / "output"
 PUBLIC_DATA_ROOT = ROOT / "public" / "data"
+SOURCE_MINIMAP_ROOT = ROOT / "minimaps"
+PUBLIC_MINIMAP_ROOT = ROOT / "public" / "minimaps"
 DATA_INDEX_PATH = ROOT / "public" / "dataIndex.json"
 RAW_DAY_GLOB = "February_*"
 
@@ -45,6 +47,17 @@ def copy_match_files() -> dict[str, list[str]]:
     return maps
 
 
+def copy_minimaps() -> None:
+    PUBLIC_MINIMAP_ROOT.mkdir(parents=True, exist_ok=True)
+
+    if not SOURCE_MINIMAP_ROOT.exists():
+        # In deploy-ready repos, committed public/minimaps may already be the source of truth.
+        return
+
+    for source_path in sorted(path for path in SOURCE_MINIMAP_ROOT.iterdir() if path.is_file()):
+        shutil.copy2(source_path, PUBLIC_MINIMAP_ROOT / source_path.name)
+
+
 def write_data_index(maps: dict[str, list[str]], match_dates: dict[str, str]) -> None:
     dates = sorted(set(match_dates.values()))
     payload = {"maps": maps, "dates": dates, "matchDates": match_dates}
@@ -55,6 +68,7 @@ def main() -> None:
     if not SOURCE_ROOT.exists():
         raise FileNotFoundError(f"Missing source directory: {SOURCE_ROOT}")
 
+    copy_minimaps()
     maps = copy_match_files()
     match_dates = build_match_dates()
     write_data_index(maps, match_dates)
