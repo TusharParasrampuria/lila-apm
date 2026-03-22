@@ -1,0 +1,15 @@
+venv/
+scripts/
+requirements.txt
+DATASET.md
+
+February_10/
+February_11/
+February_12/
+February_13/
+February_14/
+minimaps/
+output/
+
+node_modules/
+dist/
