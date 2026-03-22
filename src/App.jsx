@@ -12,6 +12,10 @@ const EVENT_FILTERS = [
   { key: "loot", label: "Loot" },
   { key: "storm_death", label: "Storm" },
 ];
+const ENTITY_FILTERS = [
+  { key: "human", label: "Human" },
+  { key: "bot", label: "Bot" },
+];
 
 function formatTime(totalSeconds) {
   const safeSeconds = Math.max(0, Math.floor(totalSeconds || 0));
@@ -28,6 +32,47 @@ function buildDefaultFilters() {
     loot: true,
     storm_death: true,
   };
+}
+
+function buildDefaultEntityFilters() {
+  return {
+    human: true,
+    bot: true,
+  };
+}
+
+function MultiSelectFilter({ label, options, selected, onToggle }) {
+  const selectedCount = options.filter((option) => selected[option.key]).length;
+  const summary =
+    selectedCount === options.length
+      ? "All"
+      : selectedCount === 0
+        ? "None"
+        : options
+            .filter((option) => selected[option.key])
+            .map((option) => option.label)
+            .join(", ");
+
+  return (
+    <details className="multi-select">
+      <summary className="multi-select-summary">
+        <span>{label}</span>
+        <span className="multi-select-value">{summary}</span>
+      </summary>
+      <div className="multi-select-menu">
+        {options.map((option) => (
+          <label key={option.key} className="multi-select-option">
+            <input
+              type="checkbox"
+              checked={selected[option.key]}
+              onChange={() => onToggle(option.key)}
+            />
+            {option.label}
+          </label>
+        ))}
+      </div>
+    </details>
+  );
 }
 
 export default function App() {
@@ -49,6 +94,7 @@ export default function App() {
   const [maxTime, setMaxTime] = useState(0);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [eventFilters, setEventFilters] = useState(buildDefaultFilters);
+  const [entityFilters, setEntityFilters] = useState(buildDefaultEntityFilters);
 
   useEffect(() => {
     let cancelled = false;
@@ -156,9 +202,12 @@ export default function App() {
     () =>
       events.filter((event) => {
         if (event.t > scaledEventTime) return false;
-        return !!eventFilters[event.type];
+        if (!eventFilters[event.type]) return false;
+        if (event.is_bot && !entityFilters.bot) return false;
+        if (!event.is_bot && !entityFilters.human) return false;
+        return true;
       }),
-    [events, scaledEventTime, eventFilters]
+    [events, scaledEventTime, eventFilters, entityFilters]
   );
 
   useEffect(() => {
@@ -268,21 +317,28 @@ export default function App() {
           Show Kill Heatmap
         </label>
         <div className="filter-group">
-          {EVENT_FILTERS.map((filter) => (
-            <label key={filter.key} className="toggle-inline">
-              <input
-                type="checkbox"
-                checked={eventFilters[filter.key]}
-                onChange={(e) =>
-                  setEventFilters((current) => ({
-                    ...current,
-                    [filter.key]: e.target.checked,
-                  }))
-                }
-              />
-              {filter.label}
-            </label>
-          ))}
+          <MultiSelectFilter
+            label="Events"
+            options={EVENT_FILTERS}
+            selected={eventFilters}
+            onToggle={(key) =>
+              setEventFilters((current) => ({
+                ...current,
+                [key]: !current[key],
+              }))
+            }
+          />
+          <MultiSelectFilter
+            label="Actors"
+            options={ENTITY_FILTERS}
+            selected={entityFilters}
+            onToggle={(key) =>
+              setEntityFilters((current) => ({
+                ...current,
+                [key]: !current[key],
+              }))
+            }
+          />
         </div>
       </header>
       <main className="map-area">

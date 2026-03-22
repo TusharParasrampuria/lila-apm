@@ -58,6 +58,25 @@ function getColor(type) {
   }
 }
 
+function createBotSquare(lat, lng, color) {
+  const size = 5;
+  return L.polygon(
+    [
+      [lat - size, lng - size],
+      [lat - size, lng + size],
+      [lat + size, lng + size],
+      [lat + size, lng - size],
+    ],
+    {
+      color,
+      fillColor: color,
+      fillOpacity: 0.8,
+      weight: 0,
+      interactive: false,
+    }
+  );
+}
+
 /**
  * Build movement paths: group position events by player, sort by t, polyline if ≥2 points.
  */
@@ -195,14 +214,18 @@ function CanvasMarkersLayer({ events, pathEvents, showHeatmap }) {
         const y_pixel = event.y * IMAGE_HEIGHT;
 
         const color = getColor(event.type);
-        L.circleMarker([y_pixel, x_pixel], {
-          radius: 2,
-          color,
-          fillColor: color,
-          fillOpacity: 0.8,
-          weight: 0,
-          interactive: false,
-        }).addTo(layerGroup);
+        if (event.is_bot) {
+          createBotSquare(y_pixel, x_pixel, color).addTo(layerGroup);
+        } else {
+          L.circleMarker([y_pixel, x_pixel], {
+            radius: 4,
+            color,
+            fillColor: color,
+            fillOpacity: 0.8,
+            weight: 0,
+            interactive: false,
+          }).addTo(layerGroup);
+        }
       }
     }
 
