@@ -1,0 +1,27 @@
+{
+  "name": "lila-black-match-visualizer",
+  "private": false,
+  "version": "0.1.0",
+  "description": "Interactive React + Leaflet visualizer for LILA BLACK match telemetry.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "data:sync": "./venv/bin/python scripts/generate_public_data.py"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "leaflet.heat": "^0.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-leaflet": "^4.2.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.10"
+  }
+}
